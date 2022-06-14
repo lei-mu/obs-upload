@@ -1,0 +1,241 @@
+*,
+:after,
+:before {
+  box-sizing: border-box;
+}
+
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+code,
+form,
+fieldset,
+legend,
+input,
+textarea,
+p,
+blockquote,
+th,
+td,
+hr,
+button,
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+menu,
+nav,
+section {
+  margin: 0;
+  padding: 0;
+}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+menu,
+nav,
+section {
+  display: block;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+audio,
+canvas,
+video {
+  display: inline-block;
+}
+
+fieldset,
+img {
+  border: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+abbr,
+acronym {
+  border: 0;
+  font-variant: normal;
+}
+
+sup {
+  vertical-align: text-top;
+}
+
+sub {
+  vertical-align: text-bottom;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+a {
+  text-decoration: none;
+  outline: none;
+  color: $dd-font-color;
+}
+
+body {
+  position: relative;
+  background: $dd-bg-color;
+  font-family: 'PingFangSC-Regular', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI',
+  'Lucida Grande', Helvetica, Arial, FreeSans, Arimo, 'Droid Sans',
+  'wenquanyi micro hei', 'Hiragino Sans GB', 'Hiragino Sans GB W3',
+  FontAwesome, sans-serif;
+  min-width: $dd-main-wd;
+  color: $dd-font-color;
+  font-size: 14px !important;
+}
+
+body,
+html {
+  min-height: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background-color: #f5f5f5;
+}
+
+/*滚动条 阴影~圆角*/
+::-webkit-scrollbar-track {
+  //-webkit-box-shadow: inset 0 0 6px rgba(128, 128, 128, 0.7);
+  border-radius: 10px;
+  //background-color: #f5f5f5;
+  background-color: #f5f5f5;
+  -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/*滑块 阴影~圆角*/
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  //-webkit-box-shadow: inset 0 0 6px rgba(128, 128, 128, 0.7);
+  //background-color: rgb(149, 147, 147);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.am-cf:after,
+.am-cf:before {
+  content: ' ';
+  display: table;
+}
+
+.am-cf {
+  &:after {
+    clear: both;
+  }
+}
+
+.am-fl {
+  float: left;
+}
+
+.am-fr {
+  float: right;
+}
+
+.am-block {
+  display: block;
+}
+
+.am-inline {
+  display: inline;
+}
+
+.am-inline-block {
+  display: inline-block;
+}
+
+.am-align-center {
+  /*文本居中*/
+  text-align: center;
+}
+
+// 宽度100%
+.am-w-100 {
+  width: 100%;
+}
+
+// 宽高100%
+.am-wh-100 {
+  width: 100%;
+  height: 100%;
+}
+
+/** 超出省略号 **/
+.am-text-eill {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/** 文本换行 **/
+.am-text-break {
+  white-space: normal;
+  word-break: break-all;
+}
+
+.am-flex-rc-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.am-flex-rc-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.am-flex-rc-around {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.am-flex-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.am-flex-row-center {
+  display: flex;
+  align-items: center;
+}
+
+

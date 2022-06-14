@@ -1,0 +1,13 @@
+**/.*
+*.iml
+src/
+node_modules
+test/
+node/
+zipDist/
+example/
+babel.config.js
+gruntfile.js
+rollup.config.js
+rollup.config.*.js
+tsconfig.json

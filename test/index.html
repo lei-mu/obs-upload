@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script src="https://cdn.static.jingyingbang.com/web/libs/axios/0.21.1/axios.min.js"></script>
+<script src="https://acc-static.oss-cn-hangzhou.aliyuncs.com/web/libs/npm/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script crossorigin="anonymous" integrity="sha512-XdUZ5nrNkVySQBnnM5vzDqHai823Spoq1W3pJoQwomQja+o4Nw0Ew1ppxo5bhF2vMug6sfibhKWcNJsG8Vj9tg==" src="https://lib.baomitu.com/vue/2.6.14/vue.min.js"></script>
+<!--<script src="/dist/zjInterceptors.browser.js"></script>-->
+<!--<script src="/dist/zjInterceptors.browser.m.js"></script>-->
+<!--<script src="/dist/zjInterceptors.js"></script>-->
+<script src="/dist/zjInterceptors.m.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/zj-interceptors@1.0.2/dist/zjInterceptors.js"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/zj-interceptors@1.0.1-alpha.0/dist/zjInterceptors.m.js"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/zj-interceptors@1.0.1-alpha.0/dist/zjInterceptors.browser.js"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/zj-interceptors@1.0.1-alpha.0/dist/zjInterceptors.browser.m.js"></script>-->
+<script>
+  console.log('zjInterceptors');
+  console.log(zjInterceptors);
+  const http = axios.create()
+  http.interceptors.response.use(
+    response => {
+      response.data.data = null
+      console.log('删除 response.data.data');
+      console.log(JSON.parse(JSON.stringify(response.data)));
+      return response
+    },
+    error => {
+      return Promise.reject(error)
+    }
+  )
+  zjInterceptors.addDecryptInterceptor(http)
+
+</script>
+<div id="app">
+    <input type="text" v-model="value"  style="width: 100%;height: 300px;" >
+    <br>
+    <label for="deco">解密内容</label>
+    <textarea type="text" id="deco" style="width: 100%;height: 300px;" :value="deval"></textarea>
+</div>
+<script>
+  const app = new Vue({
+    el: '#app',
+    data: {
+      value: ''
+    },
+    computed: {
+      deval () {
+        return zjInterceptors.decryptJson(this.value)
+      }
+    },
+    created () {
+      http.get('https://gateway.jingyingbang.com/sgb-cailiao/quickLink/list?areacode=110000').then(res => {
+        console.log('接口then data');
+        console.log(res.data);
+        this.value = res.data.payload
+      }).catch(err => {
+        console.log(err);
+      })
+    }
+  })
+</script>
+</body>
+</html>
