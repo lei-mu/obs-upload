@@ -2,7 +2,7 @@ import {mToSize} from '../utils'
 
 
 export default {
-  // 过期时间冗余
+  // 过期时间冗余。单位ms.
   expireRedundancy: 10 * 1000,
   /**
    * 分段策略
@@ -47,10 +47,11 @@ export default {
   // apiVodDetails (vodId, data) {
   //
   // },
-  // 查询vod 详情失败时，重试次数
-  vodTimesLimit: 5,
+  // 查询vod 详情失败时，重试次数; 0为无限次，直到查询到url，才会停止查询。
+  vodTimesLimit: 0,
   // 重试查询vod视频详情时时间间隔，单位ms
   vodTimeInterval: 1000,
+  // 可直接返回key,也可返回一个promise，接收key
   // getUploadKey (file, other, nanoId, fileType) {
   //
   // }

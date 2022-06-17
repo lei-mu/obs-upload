@@ -2,10 +2,11 @@
 // import ObsClient from '../static/esdk-obs-browserjs-3.21.8.min.js'
 import ObsClient from 'esdk-obs-browserjs'
 import { checkProtocol } from '../utils/check'
-import { isError, cloneDeep, isFunction } from "lodash-es"
+import { cloneDeep, isFunction } from "lodash-es"
 import { nanoid } from 'nanoid'
 import pRetry, { AbortError } from 'p-retry'
 import pAll from 'p-all'
+import pWaitFor from 'p-wait-for'
 import defaultConfig from "./defaultConfig"
 import { createThenError } from './utils'
 import { getVideoDuration, removeProtocol } from '../utils'
@@ -126,7 +127,7 @@ export default class ObsUpload {
           this._tokenExpire = 0
           resolve(this.obsClient)
         } else if (options.getAuthorization) {
-          options.getAuthorization({}).then((credentials, obsInstArg = {})=> {
+          options.getAuthorization({}).then((credentials, obsInstArg = {}) => {
             // 必传参数
             const mandatoryParams = ['ak', 'sk']
             mandatoryParams.forEach(p1 => {
@@ -198,8 +199,9 @@ export default class ObsUpload {
     })
   }
 
-  upload (param, other = {}) {
-    return new Promise((resolve, reject) => {
+  upload (param = {}, other = {}) {
+    // eslint-disable-next-line no-async-promise-executor
+    return new Promise(async (resolve, reject) => {
       let that = this
       if (!param.file) {
         obsUploadError(new Error(`缺少必传参数：'file'`))
@@ -211,7 +213,13 @@ export default class ObsUpload {
       const isVideo = config.checkIsVideo(param.file)
       let obsClientObj = null
       if (config.getUploadKey) {
-        key = config.getUploadKey(param.file, other, nanoid, this._getFileType(param.file.name))
+        try {
+          key = await config.getUploadKey(param.file, other, nanoid, this._getFileType(param.file.name))
+        } catch (e) {
+          obsUploadError(e)
+          return
+        }
+
       } else {
         key = this._getUploadKey(other.folderPath, param.file.name)
       }
@@ -280,7 +288,7 @@ export default class ObsUpload {
       }
 
       // 上传出错
-      function obsUploadError  (err)  {
+      function obsUploadError (err) {
         if (err.my_self_uploadId && err.my_self_key) {
           that.getClient().then(obsClient => {
             obsClient.abortMultipartUpload({
@@ -293,6 +301,7 @@ export default class ObsUpload {
         param.onError && param.onError(err)
         reject(err)
       }
+
       const obsUploadSuccess = (result) => {
         const obsURL = `https://${bucketName}.${removeProtocol(this._obsServer)}/${result.my_self_key}`
         result.my_slef_server = this._obsServer
@@ -319,19 +328,15 @@ export default class ObsUpload {
             bucketName,
             server: this._obsServer,
             obsURL
-          }).then((toVoResdData, toVodOther) => {
-            console.log('toVoResdData')
-            console.log(toVoResdData)
+          }).then((toVodResdData = {}, toVodOther) => {
+            console.log('toVodResdData')
+            console.log(toVodResdData)
             let {
-              code,
               data: toVodData,
               msg
-            } = toVoResdData
-            if (code === 200) {
+            } = toVodResdData
+            if (toVodData && toVodData.vodId) {
               console.log(toVodData)
-              if (!toVodData.vodId) {
-                this._warn(`接口:'apiObsToVod' 必须返回 'vodId'`)
-              }
 
               if (config.needVodURL && toVodData.url) {
                 result.my_slef_data.fullUrl = toVodData.url
@@ -341,45 +346,79 @@ export default class ObsUpload {
               result.my_slef_vod_data = toVodOther
 
               if (config.needVodURL && !toVodData.url) {
-                // 每1s 重试一次，尝试5次
-                pRetry(() => {
-                  console.log('重试')
-                  return new Promise((resolve, reject) => {
-                    config.apiVodDetails(toVodData.vodId, {
-                      key,
-                      bucketName,
-                      server: this._obsServer,
-                      obsURL
-                    }).then(vodUrlRes => {
-                      console.log('vodUrlRes')
-                      console.log(vodUrlRes)
-                      let vodDetailData = vodUrlRes.data
-                      if (vodDetailData && vodDetailData.url) {
-                        resolve(vodUrlRes)
-                      } else {
-                        setTimeout(() => {
-                          reject(new Error(vodUrlRes.msg || 'vod 转码中，无法获取播放地址'))
-                        }, config.vodTimeInterval)
-                      }
-                    }).catch(err => {
-                      // 网络错误，直接放弃重试
-                      reject(new AbortError(err.message))
-                      // throw new AbortError(err.message)
+                if (config.vodTimesLimit === 0) {
+                  // 不限次数调用，直到获取到url
+                  pWaitFor(() => {
+                    return new Promise((resolve, reject) => {
+                      config.apiVodDetails(toVodData.vodId, {
+                        key,
+                        bucketName,
+                        server: this._obsServer,
+                        obsURL
+                      }).then((vodUrlRes, otherData) => {
+                        console.log('vodUrlRes')
+                        console.log(vodUrlRes)
+                        let vodDetailData = vodUrlRes.data
+                        if (vodDetailData && vodDetailData.url) {
+                          resolve(true)
+                          result.my_slef_data.isFromVod = true
+                          result.my_slef_data.fullUrl = vodDetailData.url
+                          result.my_slef_vod_details = otherData
+                          vodVideoDurationHandle(result, vodDetailData.duration)
+                        } else {
+                          resolve(false)
+                        }
+                      }).catch(err => {
+                        // 网络错误，直接放弃重试
+                        reject(err)
+                        err.my_self_key = result.my_self_key
+                        obsUploadError(err)
+                      })
                     })
+                  }, { interval: config.vodTimeInterval, before: false }).catch(() => {
+
                   })
-                }, { retries: config.vodTimesLimit }).then(retryData => {
-                  console.log('retryData')
-                  console.log(retryData)
-                  result.my_slef_data.isFromVod = true
-                  result.my_slef_data.fullUrl = retryData.data.url
-                  result.my_slef_vod_details = retryData
-                  vodVideoDurationHandle(result, retryData.data.duration)
-                }).catch((err) => {
-                  console.log('pRetry error', err.message)
-                  console.log(err)
-                  err.my_self_key = result.my_self_key
-                  obsUploadError(err)
-                })
+                } else {
+                  // 每1s 重试一次，尝试5次
+                  pRetry(() => {
+                    console.log('重试')
+                    return new Promise((resolve, reject) => {
+                      config.apiVodDetails(toVodData.vodId, {
+                        key,
+                        bucketName,
+                        server: this._obsServer,
+                        obsURL
+                      }).then((vodUrlRes, otherData) => {
+                        console.log('vodUrlRes')
+                        console.log(vodUrlRes)
+                        let vodDetailData = vodUrlRes.data
+                        if (vodDetailData && vodDetailData.url) {
+                          resolve(vodUrlRes, otherData)
+                        } else {
+                          setTimeout(() => {
+                            reject(new Error(vodUrlRes.msg || 'vod 转码中，无法获取播放地址'))
+                          }, config.vodTimeInterval)
+                        }
+                      }).catch(err => {
+                        // 网络错误，直接放弃重试
+                        reject(new AbortError(err.message))
+                        // throw new AbortError(err.message)
+                      })
+                    })
+                  }, { retries: config.vodTimesLimit }).then((retryData, detailsOtherData) => {
+                    console.log('retryData')
+                    console.log(retryData)
+                    result.my_slef_data.isFromVod = true
+                    result.my_slef_data.fullUrl = retryData.data.url
+                    result.my_slef_vod_details = detailsOtherData
+                    vodVideoDurationHandle(result, retryData.data.duration)
+                  }).catch((err) => {
+                    console.log('pRetry error', err.message)
+                    console.log(err)
+                    err.my_self_key = result.my_self_key
+                    obsUploadError(err)
+                  })
+                }
               } else {
                 vodVideoDurationHandle(result, toVodData.duration)
               }
