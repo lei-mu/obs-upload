@@ -7,6 +7,7 @@ node/
 zipDist/
 example/
 babel.config.js
+commitlint.config.js
 gruntfile.js
 rollup.config.js
 rollup.config.*.js
