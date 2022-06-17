@@ -69,9 +69,9 @@ const initConfig = {
       }).then(res => {
         let {code, msg, data} = res.data
         if (code === 200) {
+          // resolve 第二个参数可携带任何想携带的值
           // 成功时必须接返回下参数
           resolve({
-            code: 200,
             data: {
               // vodId
               vodId: data.vodId, // 必传
@@ -79,13 +79,14 @@ const initConfig = {
               url: data.url // 非必传
             },
             msg: msg
-          }, res)
+          }, data)
         } else {
+          // resolve 第二个参数可携带任何想携带的值
           resolve({
             code: code,
             data: data,
             msg: msg
-          }, res)
+          }, data)
         }
       }).catch(err => {
         reject(err)
@@ -103,6 +104,7 @@ const initConfig = {
         let {code, msg, data} = res.data
         if (code === 200) {
           // 成功时必须接返回下参数
+          // resolve 第二个参数可携带任何想携带的值
           resolve({
             code: 200,
             data: {
@@ -110,13 +112,14 @@ const initConfig = {
               url: data.url // 非必传
             },
             msg: msg
-          }, res)
+          }, data)
         } else {
+          // resolve 第二个参数可携带任何想携带的值
           resolve({
             code: code,
             data: data,
             msg: msg
-          }, res)
+          }, data)
         }
       }).catch(err => {
         reject(err)
