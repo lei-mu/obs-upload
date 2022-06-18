@@ -304,8 +304,8 @@ export default class ObsUpload {
 
       const obsUploadSuccess = (result) => {
         const obsURL = `https://${bucketName}.${removeProtocol(this._obsServer)}/${result.obs_upload_key}`
-        result.my_slef_server = this._obsServer
-        result.my_slef_data = {
+        result.obs_upload_server = this._obsServer
+        result.obs_upload_data = {
           key: result.obs_upload_key,
           // 全路径，如果来源于vod 则是vod 全路径；如果来源于obs，则是obs 全路径
           fullUrl: obsURL,
@@ -315,8 +315,8 @@ export default class ObsUpload {
           obsUrl: obsURL
         }
         console.log('是否是视频:', isVideo)
-        console.log('result.my_slef_data')
-        console.log(result.my_slef_data)
+        console.log('result.obs_upload_data')
+        console.log(result.obs_upload_data)
         // 要转换成vod 并且是视频格式
         if (config.videoToVod && isVideo) {
           console.log('param-33--')
@@ -340,11 +340,11 @@ export default class ObsUpload {
               console.log(toVodData)
 
               if (config.needVodURL && toVodData.url) {
-                result.my_slef_data.fullUrl = toVodData.url
-                result.my_slef_data.isFromVod = true
+                result.obs_upload_data.fullUrl = toVodData.url
+                result.obs_upload_data.isFromVod = true
               }
-              result.my_slef_data.vodId = toVodData.vodId
-              result.my_slef_vod_data = toVodOther
+              result.obs_upload_data.vodId = toVodData.vodId
+              result.obs_upload_vod_data = toVodOther
 
               if (config.needVodURL && !toVodData.url) {
                 if (config.vodTimesLimit === 0) {
@@ -363,9 +363,9 @@ export default class ObsUpload {
                         let vodDetailOtherData = vodUrlRes.otherData
                         if (vodDetailData && vodDetailData.url) {
                           resolve(true)
-                          result.my_slef_data.isFromVod = true
-                          result.my_slef_data.fullUrl = vodDetailData.url
-                          result.my_slef_vod_details = vodDetailOtherData
+                          result.obs_upload_data.isFromVod = true
+                          result.obs_upload_data.fullUrl = vodDetailData.url
+                          result.obs_upload_vod_details = vodDetailOtherData
                           vodVideoDurationHandle(result, vodDetailData.duration)
                         } else {
                           resolve(false)
@@ -410,9 +410,9 @@ export default class ObsUpload {
                   }, { retries: config.vodTimesLimit }).then((retryData) => {
                     console.log('retryData')
                     console.log(retryData)
-                    result.my_slef_data.isFromVod = true
-                    result.my_slef_data.fullUrl = retryData.data.url
-                    result.my_slef_vod_details = retryData.otherData
+                    result.obs_upload_data.isFromVod = true
+                    result.obs_upload_data.fullUrl = retryData.data.url
+                    result.obs_upload_vod_details = retryData.otherData
                     vodVideoDurationHandle(result, retryData.data.duration)
                   }).catch((err) => {
                     console.log('pRetry error', err.message)
@@ -441,8 +441,8 @@ export default class ObsUpload {
        * */
       const obsVideoDurationHandle = (result) => {
         if (config.needVideoDuration && isVideo) {
-          getVideoDuration(result.my_slef_data.obsUrl).then(videoRes => {
-            result.my_slef_data.duration = videoRes.duration
+          getVideoDuration(result.obs_upload_data.obsUrl).then(videoRes => {
+            result.obs_upload_data.duration = videoRes.duration
             obsUploadProgress({ percent: 100 })
             obsUploadFormatSuccess(result)
           }).catch(err => {
@@ -461,8 +461,8 @@ export default class ObsUpload {
       const vodVideoDurationHandle = (result, duration) => {
         if (config.needVideoDuration) {
           if (duration === 0 || !duration) {
-            getVideoDuration(result.my_slef_data.obsUrl).then(videoRes => {
-              result.my_slef_data.duration = videoRes.duration
+            getVideoDuration(result.obs_upload_data.obsUrl).then(videoRes => {
+              result.obs_upload_data.duration = videoRes.duration
               obsUploadProgress({ percent: 100 })
               obsUploadFormatSuccess(result)
             }).catch(videoErr => {
@@ -470,7 +470,7 @@ export default class ObsUpload {
               obsUploadError(videoErr)
             })
           } else {
-            result.my_slef_data.duration = duration
+            result.obs_upload_data.duration = duration
             obsUploadProgress({ percent: 100 })
             obsUploadFormatSuccess(result)
           }
