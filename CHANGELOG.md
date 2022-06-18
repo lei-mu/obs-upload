@@ -1,3 +1,7 @@
+## [1.0.1](https://github.com/lei-mu/obs-upload/compare/1.0.1-alpha.2...1.0.1) (2022-06-18)
+
+
+
 ## [1.0.1-alpha.2](https://github.com/lei-mu/obs-upload/compare/1.0.1-alpha.1...1.0.1-alpha.2) (2022-06-18)
 
 
