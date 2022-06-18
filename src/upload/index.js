@@ -265,9 +265,9 @@ export default class ObsUpload {
                 if (result.CommonMsg.Status < 300) {
                   // console.timeEnd('putObject')
                   // 标记是否直传，不是分段上传
-                  result.my_self_direct = true
-                  result.my_self_bucketName = bucketName
-                  result.my_self_key = key
+                  result.obs_upload_direct = true
+                  result.obs_upload_bucketName = bucketName
+                  result.obs_upload_key = key
                   obsUploadSuccess(result)
                 } else {
                   obsUploadError(createThenError(null, result))
@@ -289,12 +289,12 @@ export default class ObsUpload {
 
       // 上传出错
       function obsUploadError (err) {
-        if (err.my_self_uploadId && err.my_self_key) {
+        if (err.obs_upload_uploadId && err.obs_upload_key) {
           that.getClient().then(obsClient => {
             obsClient.abortMultipartUpload({
               Bucket: bucketName,
-              Key: err.my_self_key,
-              UploadId: err.my_self_uploadId
+              Key: err.obs_upload_key,
+              UploadId: err.obs_upload_uploadId
             })
           })
         }
@@ -303,10 +303,10 @@ export default class ObsUpload {
       }
 
       const obsUploadSuccess = (result) => {
-        const obsURL = `https://${bucketName}.${removeProtocol(this._obsServer)}/${result.my_self_key}`
+        const obsURL = `https://${bucketName}.${removeProtocol(this._obsServer)}/${result.obs_upload_key}`
         result.my_slef_server = this._obsServer
         result.my_slef_data = {
-          key: result.my_self_key,
+          key: result.obs_upload_key,
           // 全路径，如果来源于vod 则是vod 全路径；如果来源于obs，则是obs 全路径
           fullUrl: obsURL,
           // fullUrl 是否来源于vod 播放地址
@@ -328,13 +328,14 @@ export default class ObsUpload {
             bucketName,
             server: this._obsServer,
             obsURL
-          }).then((toVodResdData = {}, toVodOther) => {
-            console.log('toVodResdData')
-            console.log(toVodResdData)
+          }).then((toVodResData = {}) => {
+            console.log('toVodResData')
+            console.log(toVodResData)
             let {
               data: toVodData,
-              msg
-            } = toVodResdData
+              msg,
+              otherData: toVodOther
+            } = toVodResData
             if (toVodData && toVodData.vodId) {
               console.log(toVodData)
 
@@ -355,15 +356,16 @@ export default class ObsUpload {
                         bucketName,
                         server: this._obsServer,
                         obsURL
-                      }).then((vodUrlRes, otherData) => {
+                      }).then((vodUrlRes = {}) => {
                         console.log('vodUrlRes')
                         console.log(vodUrlRes)
                         let vodDetailData = vodUrlRes.data
+                        let vodDetailOtherData = vodUrlRes.otherData
                         if (vodDetailData && vodDetailData.url) {
                           resolve(true)
                           result.my_slef_data.isFromVod = true
                           result.my_slef_data.fullUrl = vodDetailData.url
-                          result.my_slef_vod_details = otherData
+                          result.my_slef_vod_details = vodDetailOtherData
                           vodVideoDurationHandle(result, vodDetailData.duration)
                         } else {
                           resolve(false)
@@ -371,7 +373,7 @@ export default class ObsUpload {
                       }).catch(err => {
                         // 网络错误，直接放弃重试
                         reject(err)
-                        err.my_self_key = result.my_self_key
+                        err.obs_upload_key = result.obs_upload_key
                         obsUploadError(err)
                       })
                     })
@@ -388,12 +390,12 @@ export default class ObsUpload {
                         bucketName,
                         server: this._obsServer,
                         obsURL
-                      }).then((vodUrlRes, otherData) => {
+                      }).then((vodUrlRes) => {
                         console.log('vodUrlRes')
                         console.log(vodUrlRes)
                         let vodDetailData = vodUrlRes.data
                         if (vodDetailData && vodDetailData.url) {
-                          resolve(vodUrlRes, otherData)
+                          resolve(vodUrlRes)
                         } else {
                           setTimeout(() => {
                             reject(new Error(vodUrlRes.msg || 'vod 转码中，无法获取播放地址'))
@@ -405,17 +407,17 @@ export default class ObsUpload {
                         // throw new AbortError(err.message)
                       })
                     })
-                  }, { retries: config.vodTimesLimit }).then((retryData, detailsOtherData) => {
+                  }, { retries: config.vodTimesLimit }).then((retryData) => {
                     console.log('retryData')
                     console.log(retryData)
                     result.my_slef_data.isFromVod = true
                     result.my_slef_data.fullUrl = retryData.data.url
-                    result.my_slef_vod_details = detailsOtherData
+                    result.my_slef_vod_details = retryData.otherData
                     vodVideoDurationHandle(result, retryData.data.duration)
                   }).catch((err) => {
                     console.log('pRetry error', err.message)
                     console.log(err)
-                    err.my_self_key = result.my_self_key
+                    err.obs_upload_key = result.obs_upload_key
                     obsUploadError(err)
                   })
                 }
@@ -427,7 +429,7 @@ export default class ObsUpload {
               obsUploadError(vodError)
             }
           }).catch(err => {
-            err.my_self_key = result.my_self_key
+            err.obs_upload_key = result.obs_upload_key
             obsUploadError(err)
           })
         } else {
@@ -444,7 +446,7 @@ export default class ObsUpload {
             obsUploadProgress({ percent: 100 })
             obsUploadFormatSuccess(result)
           }).catch(err => {
-            err.my_self_key = result.my_self_key
+            err.obs_upload_key = result.obs_upload_key
             obsUploadError(err)
           })
         } else {
@@ -464,7 +466,7 @@ export default class ObsUpload {
               obsUploadProgress({ percent: 100 })
               obsUploadFormatSuccess(result)
             }).catch(videoErr => {
-              videoErr.my_self_key = result.my_self_key
+              videoErr.obs_upload_key = result.obs_upload_key
               obsUploadError(videoErr)
             })
           } else {
@@ -577,8 +579,8 @@ export default class ObsUpload {
           console.log(res)
           listParts(partsLen, UploadId)
         }).catch((err) => {
-          err.my_self_uploadId = UploadId
-          err.my_self_key = key
+          err.obs_upload_uploadId = UploadId
+          err.obs_upload_key = key
           obsUploadError(err)
         })
       }
@@ -591,8 +593,8 @@ export default class ObsUpload {
         }, (err, result) => {
           if (err) {
             console.log('listParts Error-->', err)
-            err.my_self_uploadId = uploadId
-            err.my_self_key = key
+            err.obs_upload_uploadId = uploadId
+            err.obs_upload_key = key
             obsUploadError(err)
           } else {
             console.log('listParts Status-->' + result.CommonMsg.Status)
@@ -611,8 +613,8 @@ export default class ObsUpload {
                 mergePart(parts, uploadId)
               } else {
                 obsUploadError(createThenError('片段不完整', result, {
-                  my_self_uploadId: uploadId,
-                  my_self_key: key
+                  obs_upload_uploadId: uploadId,
+                  obs_upload_key: key
                 }))
               }
               // for (var i in result.InterfaceResult.Parts) {
@@ -628,8 +630,8 @@ export default class ObsUpload {
               // }
             } else {
               obsUploadError(createThenError(null, result, {
-                my_self_uploadId: uploadId,
-                my_self_key: key
+                obs_upload_uploadId: uploadId,
+                obs_upload_key: key
               }))
             }
           }
@@ -656,9 +658,9 @@ export default class ObsUpload {
               //   key: result.InterfaceResult.Key
               // }
               // 标记是否直传，不是分段上传
-              result.my_self_direct = false
-              result.my_self_key = key
-              result.my_self_bucketName = bucketName
+              result.obs_upload_direct = false
+              result.obs_upload_key = key
+              result.obs_upload_bucketName = bucketName
               obsUploadSuccess(result, param)
               // param.onSuccess(result)
               // console.timeEnd('fragmentUpload')
