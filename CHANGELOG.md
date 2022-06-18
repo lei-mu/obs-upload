@@ -1,3 +1,17 @@
+## [1.0.1-alpha.2](https://github.com/lei-mu/obs-upload/compare/1.0.1-alpha.1...1.0.1-alpha.2) (2022-06-18)
+
+
+### Bug Fixes
+
+* 修复变量命名错误bug ([d84676c](https://github.com/lei-mu/obs-upload/commit/d84676ca6d3a49fc8cd7f2b8c42bc8aa287b115a))
+
+
+### BREAKING CHANGES
+
+* 将命名空间从`my_self`改为`obs_upload`
+
+
+
 ## [1.0.1-alpha.1](https://github.com/lei-mu/obs-upload/compare/1.0.1-alpha.0...1.0.1-alpha.1) (2022-06-18)
 
 
