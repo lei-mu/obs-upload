@@ -223,6 +223,10 @@ export default class ObsUpload {
       } else {
         key = this._getUploadKey(other.folderPath, param.file.name)
       }
+      if (!key) {
+        obsUploadError(new Error(`'getUploadKey' 返回的 key 不存在`))
+        return
+      }
       const start = () => {
         const MAX_DIRECT_SIZE = (() => {
           const partsStrategy = config.partsStrategy
@@ -312,7 +316,9 @@ export default class ObsUpload {
           // fullUrl 是否来源于vod 播放地址
           isFromVod: false,
           // 保留原始obs 路径
-          obsUrl: obsURL
+          obsUrl: obsURL,
+          // 是否是视频
+          isVideo
         }
         console.log('是否是视频:', isVideo)
         console.log('result.obs_upload_data')
@@ -328,7 +334,7 @@ export default class ObsUpload {
             bucketName,
             server: this._obsServer,
             obsURL
-          }).then((toVodResData = {}) => {
+          }).then(async (toVodResData = {}) => {
             console.log('toVodResData')
             console.log(toVodResData)
             let {
@@ -347,6 +353,27 @@ export default class ObsUpload {
               result.obs_upload_vod_data = toVodOther
 
               if (config.needVodURL && !toVodData.url) {
+                let vodTimeInterval = void 0;
+                if (typeof config.vodTimeInterval === 'number') {
+                  vodTimeInterval = config.vodTimeInterval
+                } else {
+                  try {
+                    vodTimeInterval = await config.vodTimeInterval(param.file, {
+                      key,
+                      bucketName,
+                      server: this._obsServer,
+                      obsURL,
+                      vodId: toVodData.vodId
+                    })
+                  } catch (e) {
+                    obsUploadError(e)
+                    return
+                  }
+                }
+                if (typeof vodTimeInterval !== 'number') {
+                  obsUploadError(new Error(`'vodTimeInterval' 参数必须为 Number 类型`))
+                  return
+                }
                 if (config.vodTimesLimit === 0) {
                   // 不限次数调用，直到获取到url
                   pWaitFor(() => {
@@ -377,7 +404,7 @@ export default class ObsUpload {
                         obsUploadError(err)
                       })
                     })
-                  }, { interval: config.vodTimeInterval, before: false }).catch(() => {
+                  }, { interval: vodTimeInterval, before: false }).catch(() => {
 
                   })
                 } else {
@@ -399,7 +426,7 @@ export default class ObsUpload {
                         } else {
                           setTimeout(() => {
                             reject(new Error(vodUrlRes.msg || 'vod 转码中，无法获取播放地址'))
-                          }, config.vodTimeInterval)
+                          }, vodTimeInterval)
                         }
                       }).catch(err => {
                         // 网络错误，直接放弃重试
