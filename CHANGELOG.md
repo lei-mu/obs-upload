@@ -1,3 +1,12 @@
+## [1.0.2](https://github.com/lei-mu/obs-upload/compare/1.0.1...1.0.2) (2022-06-20)
+
+
+### Features
+
+* `config.vodTimeInterval`支持函数格式;新增 `isVideo`字段用于判断是否视频类型 ([39b2bf4](https://github.com/lei-mu/obs-upload/commit/39b2bf438b8e42fa6bc8f464aa927dabe353afdc))
+
+
+
 ## [1.0.1](https://github.com/lei-mu/obs-upload/compare/1.0.1-alpha.2...1.0.1) (2022-06-18)
 
 
