@@ -34,6 +34,10 @@ export default class ObsUpload {
       this._bucketName = options.bucketName
     }
 
+    if (options.server) {
+      this._obsServer = options.server
+    }
+
     if (mergeConfig.videoToVod) {
       if (!isFunction(config.apiObsToVod)) {
         console.warn('当需要将视频上传到vod时，apiObsToVod 方法必传，且必须反回一个promise')
@@ -135,7 +139,7 @@ export default class ObsUpload {
                 _warn(`参数：'${p1}' 为必传参数`)
               }
             })
-            const server = credentials.server || this._obsServer || null
+            const server = credentials.server || options.server || null
             if (!server) {
               _warn(`参数：'server' 为必传参数`)
             }
@@ -249,7 +253,7 @@ export default class ObsUpload {
               Key: key,
               SourceFile: param.file,
               // "Content-Type": '',
-              ProgressCallback: (transferredAmount, totalAmount, totalSeconds) => {
+              ProgressCallback: (transferredAmount, totalAmount) => {
                 console.log('ProgressCallback')
                 console.log(transferredAmount, totalAmount)
                 let percent = transferredAmount / totalAmount * 100 | 0 // 百分比
@@ -353,7 +357,7 @@ export default class ObsUpload {
               result.obs_upload_vod_data = toVodOther
 
               if (config.needVodURL && !toVodData.url) {
-                let vodTimeInterval = void 0;
+                let vodTimeInterval = void 0
                 if (typeof config.vodTimeInterval === 'number') {
                   vodTimeInterval = config.vodTimeInterval
                 } else {
