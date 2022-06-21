@@ -201,7 +201,7 @@ export default class ObsUpload {
 
   upload (param = {}, other = {}) {
     // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (uploadResolve, uploadReject) => {
       let that = this
       if (!param.file) {
         obsUploadError(new Error(`缺少必传参数：'file'`))
@@ -303,7 +303,7 @@ export default class ObsUpload {
           })
         }
         param.onError && param.onError(err)
-        reject(err)
+        uploadReject(err)
       }
 
       const obsUploadSuccess = (result) => {
@@ -509,7 +509,7 @@ export default class ObsUpload {
 
       const obsUploadFormatSuccess = (result) => {
         param.onSuccess && param.onSuccess(result)
-        resolve(result)
+        uploadResolve(result)
       }
 
       // 分片上传
