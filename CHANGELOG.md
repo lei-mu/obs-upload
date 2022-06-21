@@ -1,3 +1,12 @@
+## [1.0.3](https://github.com/lei-mu/obs-upload/compare/1.0.3-alpha.1...1.0.3) (2022-06-21)
+
+
+### Bug Fixes
+
+* 修复异步获取秘钥时，配置静态`server`不生效bug ([9793f8a](https://github.com/lei-mu/obs-upload/commit/9793f8ab76053b81b152aa2ce6c1fd00d2d45f9d))
+
+
+
 ## [1.0.2](https://github.com/lei-mu/obs-upload/compare/1.0.1...1.0.2) (2022-06-20)
 
 
