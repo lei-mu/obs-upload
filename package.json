@@ -12,7 +12,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "release": "standard-version"
+    "release": "standard-version",
+    "pub": "npm publish && cnpm sync obs-upload",
+    "pub:alpha": "npm publish --tag=alpha && cnpm sync obs-upload"
   },
   "exports": {
     ".": {
