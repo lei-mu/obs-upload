@@ -78,5 +78,5 @@ export default {
   // globals: {
   //   'CryptoJS': true
   // },
-  external: ['core-js', 'nanoid', 'p-all', 'p-retry', 'lodash-es', 'esdk-obs-browserjs']
+  external: ['core-js', 'nanoid', 'p-all', 'p-retry', 'p-wait-for', 'lodash-es', 'esdk-obs-browserjs']
 }
