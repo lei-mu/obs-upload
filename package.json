@@ -1,6 +1,6 @@
 {
   "name": "obs-upload",
-  "version": "1.0.3-alpha.0",
+  "version": "1.0.3-alpha.1",
   "description": "浏览器端的obs简易上传封装",
   "keywords": [
     "obs",
