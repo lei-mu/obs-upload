@@ -1,25 +1,39 @@
 <template>
   <div>
-    <div>
-      <router-link to="/fixed-secret">固定id,和固定秘钥</router-link>
-      <br>
-      <router-link to="/async-secret">异步获取id和秘钥、异步获取临时id和临时秘钥和临时token</router-link>
-      <br>
-      <router-link to="/custom-upload">自定义上传</router-link>
-      <hr>
-    </div>
-    <router-view></router-view>
+    <el-container class="layout-main-content">
+      <el-header class="layout-header">Header</el-header>
+      <el-container>
+        <el-aside width="200px" class="layout-aside">
+          <Aside></Aside> 
+        </el-aside>
+        <el-main class="layout-main"> <router-view></router-view></el-main>
+      </el-container>
+    </el-container>
   </div>
 </template>
 
 <script>
+import {defineComponent} from 'vue'
 export default {
-  created() {
-
-  }
-}
+  components: {
+    Aside: () => import('./components/aside')
+  },
+  created() {},
+};
 </script>
 
-<style scoped>
-
+<style scoped lang="scss">
+.layout-main-content{
+  min-height: 100vh;
+}
+.layout-header{
+  background-color: #fff;
+}
+.layout-aside{
+  background-color: #fff;
+}
+.layout-main{
+  margin: 15px;
+  background-color: #fff;
+}
 </style>

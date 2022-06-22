@@ -5,15 +5,8 @@
         <el-input v-model="folder" placeholder="test/"></el-input>
       </el-form-item>
       <el-form-item label="选择文件">
-        <el-upload
-          class="upload-demo"
-          drag
-          action="none"
-          :http-request="fileUpload"
-          :on-error="uploadError"
-          :on-success="uploadSuccess"
-          :on-progress="uploadProgress"
-          multiple>
+        <el-upload class="upload-demo" drag action="none" :http-request="fileUpload" :on-error="uploadError"
+          :on-success="uploadSuccess" :on-progress="uploadProgress" multiple>
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
           <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
@@ -67,28 +60,28 @@ const initConfig = {
         obsUrl: data.key,
         title: file.name
       }).then(res => {
-        let {code, msg, data} = res.data
+        let { code, msg, data } = res.data
         if (code === 200) {
-          // resolve 第二个参数可携带任何想携带的值
           // 成功时必须接返回下参数
           resolve({
             data: {
-              // vodId
-              vodId: data.vodId, // 必传
-              // 该视频在vod 的播放地址
-              url: data.url // 非必传
+              // 该视频在vod 的播放地址。获取到url 后会立即停止重试。
+              url: data.videoUrl // 非必传
             },
+            // 需要携带的自定义参数。上传成功后 obs_upload_vod_details 字段体现。
+            otherData: data,
             msg: msg
-          }, data)
+          })
         } else {
-          // resolve 第二个参数可携带任何想携带的值
+          // 当前还没有url,会继续进行重试。
           resolve({
-            code: code,
             data: data,
-            msg: msg
-          }, data)
+            otherData: data,
+            msg: msg // msg 可传可不传，表示上传失败时 error.message 。
+          })
         }
       }).catch(err => {
+        // 如果接收 reject 则会停止重试。注意reject 应始终只接收一个Error 对象
         reject(err)
       })
     })
@@ -97,29 +90,30 @@ const initConfig = {
   videoToVod: true,
   // 是否需要vod 的播放地址。应为前端通知后端obs 转存vod 时，不一定能立即拿到vod 的播放地址。如果true, 会通过 apiVodDetails 多次尝试获取，如果不需要要vod 播放地址，则在获取到vodId 后立即响应成功，不进行多次尝试。
   needVodURL: true,
-  // 改接口作用主要获取视频vod播放地址。因为obs 转存vod 不是同步的，在apiObsToVod 时可能获取不到vod 的播放地址，所以提过此接口尝试多次。在 ‘needVodURL’ 为true 时调用。会尝试 config.vodTimesLimit 次。如果尝试多次仍获取不到url,则判定上传失败。如果needVodURL 不为true 则不需要提供此参数。
+  // 该接口作用主要获取视频vod播放地址。因为obs 转存vod 不是同步的，在apiObsToVod 时可能获取不到vod 的播放地址，所以通过此接口尝试多次。在 ‘needVodURL’ 为true 时调用。会尝试 config.vodTimesLimit 次。如果尝试config.vodTimesLimit次后仍获取不到url,则判定上传失败。如果needVodURL 不为true 则不需要提供此参数。
+  // https://support.huaweicloud.com/api-vod/vod_04_0202.html
   apiVodDetails(vodId, data) {
     return new Promise((resolve, reject) => {
       http.get(`https://xxx/getVideoDetail/${vodId}`).then(res => {
-        let {code, msg, data} = res.data
+        let { code, msg, data } = res.data
         if (code === 200) {
-          // 成功时必须接返回下参数
-          // resolve 第二个参数可携带任何想携带的值
+         // 成功时必须接返回下参数
           resolve({
-            code: 200,
             data: {
               // 该视频在vod 的播放地址。获取到url 后会立即停止重试。
-              url: data.url // 非必传
+              url: data.videoUrl // 非必传
             },
+            // 需要携带的自定义参数。上传成功后 obs_upload_vod_details 字段体现。
+            otherData: data,
             msg: msg
-          }, data)
+          })
         } else {
-          // resolve 第二个参数可携带任何想携带的值
+         // 当前还没有url,会继续进行重试。
           resolve({
-            code: code,
             data: data,
-            msg: msg
-          }, data)
+            otherData: data,
+            msg: msg // msg 可传可不传，表示上传失败时 error.message 。
+          })
         }
       }).catch(err => {
         reject(err)
@@ -139,7 +133,7 @@ export default {
   },
   methods: {
     fileUpload(param) {
-      this.obsUpload.upload(param, {folderPath: this.folder})
+      this.obsUpload.upload(param, { folderPath: this.folder })
     },
     uploadError(err, file) {
       console.log('uploadError');
@@ -158,5 +152,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>
