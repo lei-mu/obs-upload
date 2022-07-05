@@ -5,11 +5,11 @@ import { checkProtocol } from '../utils/check'
 import { cloneDeep, isFunction } from "lodash-es"
 import { nanoid } from 'nanoid'
 import pRetry, { AbortError } from 'p-retry'
-import pAll from 'p-all'
+// import pAll from 'p-all'
 import pWaitFor from 'p-wait-for'
 import defaultConfig from "./defaultConfig"
 import { createThenError } from './utils'
-import { getVideoDuration, removeProtocol } from '../utils'
+import { getVideoDuration, removeProtocol, pAllThrottle } from '../utils'
 // const ObsClient = require('../static/esdk-obs-browserjs-without-polyfill-3.21.8.min.js')
 import { version } from '../../package.json'
 
@@ -605,7 +605,7 @@ export default class ObsUpload {
           })(partNumber)
         }
         // https://github.com/sindresorhus/p-all
-        pAll(tasks, { concurrency: partConfig.concurrentNum }).then(res => {
+        pAllThrottle(tasks, { concurrency: partConfig.concurrentNum }).then(res => {
           console.log('pAll res0')
           console.log(res)
           listParts(partsLen, UploadId)

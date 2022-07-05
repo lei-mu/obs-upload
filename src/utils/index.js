@@ -37,3 +37,60 @@ export const removeProtocol = val => {
   const arr = val.split('//')
   return arr.pop()
 }
+
+
+/**
+ * Promise.all 节流
+ * @param {Array} tasks - 函数集合
+ * @param {Object} options - 配置
+ * @param {Number} options.concurrency - 并行数。默认无穷大
+ * @param {Boolean} options.stopOnError - 遇到错误是否立即停止。默认true
+ * */
+export const pAllThrottle = (tasks = [], options = {}) => {
+  return new Promise((resolve, reject) => {
+    const defaultOptions = {
+      concurrency: Number.POSITIVE_INFINITY,
+      stopOnError: true
+    }
+    if (tasks.length === 0) {
+      resolve()
+      return
+    }
+    options = { ...defaultOptions, ...options }
+    let concurrency = 0
+    let finished = 0
+    const count = tasks.length
+    const cloneTasks = [...tasks]
+    // let isResolve = false
+    let isReject = false
+    const run = (promiseFn) => {
+      concurrency++
+      promiseFn()
+        .then(() => {
+          concurrency--
+          finished++
+          if (finished === count) {
+            // isResolve = true
+            resolve()
+          } else {
+            if (!isReject) {
+              drainQueue()
+            }
+          }
+        }).catch(err => {
+          concurrency--
+          if (options.stopOnError && !isReject) {
+            isReject = true
+            reject(err)
+          }
+        })
+    }
+    const drainQueue = () => {
+      while (cloneTasks.length > 0 && concurrency < options.concurrency) {
+        const pFun = cloneTasks.shift()
+        run(pFun)
+      }
+    }
+    drainQueue()
+  })
+}
