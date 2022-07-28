@@ -264,7 +264,7 @@ const obsUpload = new ObsUpload(initOptions, initConfig)
       return num * 1024 * 1024
     }
     const fileSize = file.size
-    if (fileSize > mToSize(200)) {
+    if (fileSize > mToSize(300)) {
       return 3 * 1000
     } else if (fileSize > mToSize(200)) {
       return 2 * 1000
